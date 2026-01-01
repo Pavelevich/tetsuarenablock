@@ -8,7 +8,10 @@ Block explorer and wallet API backend for the TETSUO blockchain, powering tetsuo
 - Address lookup and balance checking
 - UTXO management API for wallet integration
 - Transaction broadcasting
-- Real-time blockchain statistics
+- Real-time blockchain statistics (updates every 5 seconds)
+- Real-time recent blocks display (updates every 5 seconds)
+- Mobile responsive design (optimized for all devices)
+- Search security with input validation and injection prevention
 
 ## API Endpoints
 
@@ -25,11 +28,11 @@ Block explorer and wallet API backend for the TETSUO blockchain, powering tetsuo
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/block/{hash}` | GET | Get block by hash |
-| `/api/block/height/{height}` | GET | Get block by height |
-| `/api/tx/{txid}` | GET | Get transaction details |
-| `/api/address/{address}` | GET | Get address info |
-| `/api/stats` | GET | Network statistics |
+| `/api/info` | GET | Network statistics (blocks, difficulty, connections, chain) |
+| `/api/blocks/:n` | GET | Get last N blocks (max 100) |
+| `/api/block/:hash` | GET | Get block by hash |
+| `/api/wallet/utxos/:address` | GET | Get UTXOs for address |
+| `/api/wallet/broadcast` | POST | Broadcast signed transaction |
 
 ## API Response Examples
 
@@ -98,6 +101,26 @@ const rpc = {
   pass: 'your_password'
 };
 ```
+
+## UI Features
+
+### Real-Time Updates
+- **Network Stats**: Block height, difficulty, connections, and chain status update every 5 seconds
+- **Recent Blocks**: Latest 10 blocks display updates automatically without page refresh
+- **Live Fetching**: Uses `/api/info` and `/api/blocks/10` endpoints for real-time data
+
+### Security & Validation
+- **Search Input Validation**:
+  - Client-side: Disabled submit button until text entered
+  - Server-side: Blocks empty searches, max 128 character limit
+  - Prevents injection attacks with proper input sanitization
+- **Error Handling**: Graceful error messages for invalid queries
+
+### Responsive Design
+- **Mobile Optimized**: CSS media queries for tablets (768px) and phones (480px)
+- **Touch-Friendly**: Properly sized buttons and inputs for mobile
+- **Adaptive Layout**: Single-column layout on mobile, multi-column on desktop
+- **Scrollable Tables**: Horizontal scroll for wide content on mobile
 
 ## Deployment
 

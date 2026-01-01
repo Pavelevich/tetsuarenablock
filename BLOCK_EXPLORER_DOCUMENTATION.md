@@ -166,9 +166,16 @@ app.post('/api/wallet/broadcast', async (req, res) => {
 ## 5. Frontend Pages
 
 ### Home Page (`/`)
-- Network statistics (height, hashrate, difficulty)
-- Latest blocks list
-- Latest transactions list
+- **Network Statistics** (updated every 5 seconds):
+  - Block height
+  - Difficulty
+  - Active connections
+  - Network chain status
+- **Recent Blocks Table** (updated every 5 seconds):
+  - Height, Hash, Timestamp, Transaction count
+  - Click to view block details
+- **Matrix Rain Background**: Animated ASCII art effect
+- **Search Bar**: Input validation with real-time feedback
 
 ### Block Page (`/block/:hash`)
 - Block header info
@@ -184,6 +191,37 @@ app.post('/api/wallet/broadcast', async (req, res) => {
 - Balance display
 - Transaction history
 - UTXO list
+
+## 5b. Real-Time Updates (Client-Side)
+
+### Stats Refresh
+```javascript
+// Updates every 5 seconds
+setInterval(() => {
+  fetch('/api/info')
+    .then(r => r.json())
+    .then(d => {
+      // Updates 4 stat boxes:
+      // - BLOCK HEIGHT
+      // - DIFFICULTY
+      // - CONNECTIONS
+      // - NETWORK
+    })
+}, 5000);
+```
+
+### Recent Blocks Refresh
+```javascript
+// Updates table every 5 seconds
+setInterval(() => {
+  fetch('/api/blocks/10')
+    .then(r => r.json())
+    .then(blocks => {
+      // Regenerates recent blocks table with latest data
+      // Preserves header row and click handlers
+    })
+}, 5000);
+```
 
 ---
 
@@ -219,9 +257,18 @@ server {
 
 1. **RPC Access**: Only allow localhost connections to RPC
 2. **Rate Limiting**: Implement request rate limiting
-3. **Input Validation**: Validate all addresses and transaction hex
+3. **Input Validation**:
+   - All search queries validated on server and client
+   - Maximum 128 character limit prevents buffer overflow
+   - Empty searches blocked with validation message
+   - Regex validation for block heights (0-999999999) and hashes (64 hex chars)
 4. **CORS**: Configure appropriate CORS headers for wallet API
 5. **SSL**: Always use HTTPS in production
+6. **Search Form Security**:
+   - Client-side: Button disabled until input filled
+   - Server-side: Empty queries rejected immediately
+   - Input sanitization prevents injection attacks
+   - Graceful error messages for invalid queries
 
 ---
 
@@ -245,7 +292,50 @@ app.get('/api/health', async (req, res) => {
 
 ---
 
-## 9. Running the Explorer
+## 9. Responsive Design
+
+### Media Query Breakpoints
+- **Desktop**: Full layout with optimal spacing
+- **Tablet (768px)**: Single-column stats, adjusted font sizes
+- **Mobile (480px)**: Minimal spacing, touch-optimized buttons
+
+### CSS Features
+```css
+/* Tablet devices (max-width: 768px) */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr; /* Stack vertically */
+  }
+  .header-title {
+    font-size: 1.8em;
+  }
+  .search-box {
+    flex-direction: column;
+  }
+}
+
+/* Phone devices (max-width: 480px) */
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 1.4em;
+  }
+  .stat-value {
+    font-size: 1.2em;
+  }
+  /* Tables become horizontally scrollable */
+}
+```
+
+### Mobile Optimizations
+- **Stat boxes**: Stack vertically on mobile
+- **Search bar**: Button below input on mobile
+- **Tables**: Horizontally scrollable with proper padding
+- **Typography**: Scaled font sizes for readability
+- **Buttons**: Touch-friendly padding (12px minimum)
+
+---
+
+## 10. Running the Explorer
 
 ```bash
 # Install dependencies
@@ -261,6 +351,26 @@ node server.js
 # Or with PM2
 pm2 start server.js --name tetsuo-explorer
 ```
+
+---
+
+## 11. Recent Updates (January 2026)
+
+### Real-Time Features
+- ✅ Network statistics update every 5 seconds
+- ✅ Recent blocks table updates every 5 seconds
+- ✅ No manual refresh required
+
+### Mobile & UI
+- ✅ Responsive CSS for tablets (768px) and mobile (480px)
+- ✅ Touch-friendly interface
+- ✅ Horizontally scrollable tables on mobile
+
+### Security
+- ✅ Search input validation (server + client)
+- ✅ Maximum 128 character limit
+- ✅ Injection prevention
+- ✅ Graceful error messages
 
 ---
 
