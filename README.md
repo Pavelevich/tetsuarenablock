@@ -1,151 +1,174 @@
 # TETSUO Block Explorer & Wallet API
 
-Block explorer and wallet API backend for the TETSUO blockchain, powering tetsuoarena.com.
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-tetsuarenablock-blue.svg)](https://github.com/Pavelevich/tetsuarenablock)
+
+**Backend for TETSUO Block Explorer & Wallet API**
+
+Complete Node.js/Express backend powering [tetsuoarena.com](https://tetsuoarena.com) - the live block explorer for the TETSUO blockchain.
+
+Provides wallet APIs for balance queries, UTXO management, and transaction broadcasting. Includes a responsive web frontend for blockchain exploration.
+
+## Quick Start
+
+### Requirements
+- Node.js 18+
+- TETSUO blockchain node with RPC enabled
+- nginx (for production)
+
+### Installation
+
+```bash
+git clone https://github.com/Pavelevich/tetsuarenablock.git
+cd tetsuarenablock
+npm install
+```
+
+### Configuration
+
+Set environment variables in `.env`:
+
+```bash
+TETSUO_RPC_URL=http://localhost:8332
+TETSUO_RPC_USER=rpcuser
+TETSUO_RPC_PASSWORD=rpcpassword
+PORT=3000
+NODE_ENV=production
+CORS_ORIGIN=https://tetsuoarena.com
+```
+
+### Run
+
+```bash
+npm start
+```
+
+Server runs on `http://localhost:3000`
 
 ## Features
 
-- Block explorer with transaction history
-- Address lookup and balance checking
-- UTXO management API for wallet integration
+- Real-time blockchain data (updates every 5 seconds)
+- Transaction lookup by TXID
+- Address balance and transaction history
+- UTXO management for wallet integration
 - Transaction broadcasting
-- Real-time blockchain statistics (updates every 5 seconds)
-- Real-time recent blocks display (updates every 5 seconds)
-- Mobile responsive design (optimized for all devices)
-- Search security with input validation and injection prevention
+- Mobile-responsive web interface
+- Input validation and injection prevention
+- SQLite transaction indexing
 
 ## API Endpoints
 
 ### Wallet API
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/wallet/utxos/{address}` | GET | Get unspent outputs for address |
-| `/api/wallet/balance/{address}` | GET | Get address balance |
-| `/api/wallet/broadcast` | POST | Broadcast signed transaction |
-| `/api/wallet/transactions/{address}` | GET | Get transaction history |
+**Get Balance**
+```
+GET /api/wallet/balance/{address}
+```
+
+**Get UTXOs**
+```
+GET /api/wallet/utxos/{address}
+```
+
+**Get Transaction History**
+```
+GET /api/wallet/transactions/{address}
+```
+
+**Broadcast Transaction**
+```
+POST /api/wallet/broadcast
+Content-Type: application/json
+{ "txHex": "..." }
+```
 
 ### Explorer API
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/info` | GET | Network statistics (blocks, difficulty, connections, chain) |
-| `/api/blocks/:n` | GET | Get last N blocks (max 100) |
-| `/api/block/:hash` | GET | Get block by hash |
-| `/api/wallet/utxos/:address` | GET | Get UTXOs for address |
-| `/api/wallet/broadcast` | POST | Broadcast signed transaction |
-
-## API Response Examples
-
-### Get UTXOs
-```json
-GET /api/wallet/utxos/T1abc123...
-
-{
-  "utxos": [
-    {
-      "txid": "abc123...",
-      "vout": 0,
-      "amount": 10000.0,
-      "scriptPubKey": "76a914...88ac",
-      "height": 1234
-    }
-  ],
-  "error": null
-}
+**Get Block**
+```
+GET /api/block/{blockHeight|blockHash}
 ```
 
-### Get Balance
-```json
-GET /api/wallet/balance/T1abc123...
-
-{
-  "balance": 50000.0,
-  "confirmed": 50000.0,
-  "unconfirmed": 0.0
-}
+**Get Transaction**
+```
+GET /api/tx/{txid}
 ```
 
-### Broadcast Transaction
-```json
-POST /api/wallet/broadcast
-Content-Type: application/json
-
-{
-  "txHex": "0100000001..."
-}
-
-Response:
-{
-  "txid": "def456...",
-  "success": true
-}
+**Get Network Info**
+```
+GET /api/network/info
 ```
 
-## Network Configuration
+## Architecture
 
-| Parameter | Value |
-|-----------|-------|
-| Blockchain RPC | localhost:9332 |
-| P2P Port | 9333 |
-| Explorer URL | https://tetsuoarena.com |
-
-## RPC Connection
-
-The API connects to the TETSUO node via RPC:
-
-```javascript
-const rpc = {
-  host: 'localhost',
-  port: 9332,
-  user: 'tetsuorpc',
-  pass: 'your_password'
-};
-```
-
-## UI Features
-
-### Real-Time Updates
-- **Network Stats**: Block height, difficulty, connections, and chain status update every 5 seconds
-- **Recent Blocks**: Latest 10 blocks display updates automatically without page refresh
-- **Live Fetching**: Uses `/api/info` and `/api/blocks/10` endpoints for real-time data
-
-### Security & Validation
-- **Search Input Validation**:
-  - Client-side: Disabled submit button until text entered
-  - Server-side: Blocks empty searches, max 128 character limit
-  - Prevents injection attacks with proper input sanitization
-- **Error Handling**: Graceful error messages for invalid queries
-
-### Responsive Design
-- **Mobile Optimized**: CSS media queries for tablets (768px) and phones (480px)
-- **Touch-Friendly**: Properly sized buttons and inputs for mobile
-- **Adaptive Layout**: Single-column layout on mobile, multi-column on desktop
-- **Scrollable Tables**: Horizontal scroll for wide content on mobile
+- **Backend**: Node.js + Express.js
+- **Database**: SQLite (transaction indexing)
+- **RPC**: Direct connection to TETSUO node
+- **Proxy**: nginx (reverse proxy + SSL)
+- **Frontend**: HTML5, CSS3, JavaScript
 
 ## Deployment
 
-### Requirements
-- Node.js 18+
-- TETSUO node running with RPC enabled
-- nginx (reverse proxy)
-- SSL certificate
+### Production Setup
 
-### Environment Variables
-```
-RPC_HOST=localhost
-RPC_PORT=9332
-RPC_USER=tetsuorpc
-RPC_PASS=your_password
-PORT=3000
+1. **SSL Certificate** (Let's Encrypt)
+```bash
+certbot certonly --standalone -d tetsuoarena.com
 ```
 
-## Tech Stack
+2. **nginx Reverse Proxy**
+```nginx
+server {
+  listen 443 ssl http2;
+  server_name tetsuoarena.com;
 
-- Backend: Node.js / Express
-- Database: SQLite (tx indexing)
-- Frontend: HTML/CSS/JS
-- Proxy: nginx
+  ssl_certificate /etc/letsencrypt/live/tetsuoarena.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/tetsuoarena.com/privkey.pem;
+
+  location /api {
+    proxy_pass http://localhost:3000;
+  }
+
+  location / {
+    root /var/www/tetsuarenablock/public;
+    try_files $uri $uri/ /index.html;
+  }
+}
+```
+
+3. **Process Manager** (PM2)
+```bash
+npm install -g pm2
+pm2 start server.js --name "tetsuo-explorer"
+pm2 startup
+pm2 save
+```
+
+## Security
+
+- Input validation on all API endpoints
+- SQL injection prevention
+- Rate limiting (100 req/min per IP)
+- CORS restrictions
+- HTTPS enforced
+- XSS prevention
+
+## Documentation
+
+- API Reference: `BLOCK_EXPLORER_DOCUMENTATION.md`
+- Changelog: `CHANGELOG.md`
+
+## Related Projects
+
+- **TETSUO Node**: [github.com/Pavelevich/tetsuonode](https://github.com/Pavelevich/tetsuonode)
+- **Wallet SDK**: [github.com/Pavelevich/tetsuonpmwallet](https://github.com/Pavelevich/tetsuonpmwallet)
 
 ## License
 
-MIT
+MIT License - see LICENSE file
+
+## Support
+
+- Issues: [GitHub Issues](https://github.com/Pavelevich/tetsuarenablock/issues)
+- Live Explorer: [tetsuoarena.com](https://tetsuoarena.com)
